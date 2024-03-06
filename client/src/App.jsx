@@ -1,32 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect } from 'react'
 import './App.css'
 
+import { getSVGAssets } from '@auxfix/gif_server';
+export const SVG_TYPE_COOKIE = 'svg-type';
+
+function setCookie(name, value, daysToExpire) {
+  const expirationDate = new Date();
+  expirationDate.setDate(expirationDate.getDate() + daysToExpire);
+
+  const cookieString = `${name}=${value}; expires=${expirationDate.toUTCString()}; path=/`;
+
+  document.cookie = cookieString;
+}
+
+export function findCookie(cookieName) {
+  const cookies = document.cookie.split(';');
+
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+
+    if (name === cookieName) {
+      return { name, value };
+    }
+  }
+
+  return null;
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [isNewSVGCookie, setIsNewSVGCookie] = useState(false);
+  const [svg, setSvg] = useState(getSVGAssets().map);
+
+  useEffect(() => {
+    setCookie(SVG_TYPE_COOKIE, isNewSVGCookie ? 'true': 'false', 100);
+    const svgAsset = getSVGAssets();
+    setSvg(svgAsset);
+  },[isNewSVGCookie])
+
+  const { name, value } = findCookie(SVG_TYPE_COOKIE);
 
   return (
     <>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+       <img style={{width: '100px', height: '100px'}} src={svg.map} />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+      <button onClick={() => { setIsNewSVGCookie(!isNewSVGCookie); }}>Flip</button>
+      <p>
+        {`cookie: ${name}: ${value}`}
       </p>
     </>
   )
